@@ -20,7 +20,7 @@
 #property strict
 /* 
 
-Falcon F: 
+Falcon F1: 
 - Adding specific functions to manage Decision Support System
 - Adding trade direction and asset price change prediction from Decision Support System
 # Trading directions:
@@ -33,20 +33,18 @@ Falcon F:
 # B. M15 Change is in the same direction and having sufficient target > 20 pips 
 # C. M1 Direction is predicted for the same side
 # Money Management
-# A. M15 Predicted Change is defining Take Profit Level
-# B. Stop loss is 3/4 of the Predicted Change
+# A. Predicted Change is defining Take Profit Level
+# B. Stop loss will depend on the Predicted Change
 # C. Only one order can be opened at the time
 # Trade Exit is triggered when:
-# A. Time of the order is reached value is 1125 min
-# B. Time Exit is renewed when Exact Same Trading Entry is Suggested
-# C. When Opposite direction order is triggered
+# A. Time of the order is reached fixed value e.g 1125 min
 */
 
 //+------------------------------------------------------------------+
 //| Setup                                               
 //+------------------------------------------------------------------+
 extern string  Header15="----------EA General Settings-----------";
-extern int     MagicNumber           = 8137201;
+extern int     MagicNumber           = 8138201;
 extern int     TerminalType          = 1;         //0 mean slave, 1 mean master
 extern bool    R_Management          = true;      //R_Management true will enable Decision Support Centre (using R)
 extern int     Slippage=3; // In Pips
@@ -54,12 +52,21 @@ extern bool    IsECNbroker = false; // Is your broker an ECN
 extern bool    OnJournaling = true; // Add EA updates in the Journal Tab
 
 extern string  Header1="----------Trading Rules Variables -----------";
-extern int     TimeMaxHold            = 1125;  //max order close time in minutes
+extern string  RobotBehavior          = "scalper"; //"scalper", "daily", "longterm"
+extern bool    usePredictedSL         = True;
+extern bool    usePredictedTP         = True;
+extern int     TimeMaxHoldM1          = 75; //max order close time in minutes
+extern int     TimeMaxHoldM15         = 1125; //max order close time in minutes
+extern int     TimeMaxHoldM60         = 6000; //max order close time in minutes
+extern int     entryTriggerM1         = 20;   //trade will start when predicted value will exceed this threshold
 extern int     entryTriggerM15        = 50;   //trade will start when predicted value will exceed this threshold
-extern double  stopLossFactor         = 0.75; //SL factor from 0.75 up to 2 multiplied by predicted TP
-extern double  takeProfitFactor       = 1;    //TP factor from 0.25 to 1 multiplied by predicted TP
-extern bool    usePredictedTP         = True; //system will use predicted TP amount
-extern bool    usePredictedSL         = True; //system will use predicted SL amount as 3/4 of predicted TP
+extern int     entryTriggerM60        = 150;  //trade will start when predicted value will exceed this threshold
+extern double  stopLossFactorM1       = 2;    //SL factor from 0.75 up to 2 multiplied by predicted TP
+extern double  stopLossFactorM15      = 0.75; //SL factor from 0.75 up to 2 multiplied by predicted TP
+extern double  stopLossFactorM60      = 0.5; //SL factor from 0.75 up to 2 multiplied by predicted TP
+extern double  takeProfFactorM1       = 1;    //TP factor from 0.25 to 1 multiplied by predicted TP
+extern double  takeProfFactorM15      = 1;    //TP factor from 0.25 to 1 multiplied by predicted TP
+extern double  takeProfFactorM60      = 0.75;    //TP factor from 0.25 to 1 multiplied by predicted TP
 extern int     predictor_periodM1     = 1;    //predictor period in minutes
 extern int     predictor_periodM15    = 15;   //predictor period in minutes
 extern int     predictor_periodH1     = 60;   //predictor period in minutes
@@ -170,7 +177,8 @@ bool FlagBuy, FlagSell;       //boolean flags to limit direction of trades
 datetime ReferenceTime;       //used for order history
 int     MyMarketType;         //used to recieve market status from AI
 //used to recieve prediction from AI 
-int     AIPredictionM1, AIPredictionM15, AIPredictionH1;         
+int     AIPredictionM1, AIPredictionM15, AIPredictionH1;  
+int TimeMaxHold;       
 double    AIPriceChangePredictionM1, AIPriceChangePredictionM15, AIPriceChangePredictionH1;
 
 //+------------------------------------------------------------------+
@@ -271,30 +279,27 @@ int start()
              FlagSell= False;
            }
       
-         //Specifying Buy Conditions
-         else if(AIPredictionM1 == TRADE_BU && AIPriceChangePredictionM15 > entryTriggerM15 && AIPredictionH1 == TRADE_BU)
-           {
-             FlagBuy = True;
-             FlagSell= False;
-           }
-           
-         //Specifying Sell Conditions
-         else if(AIPredictionM1 == TRADE_BE && AIPriceChangePredictionM15 < -1*entryTriggerM15 && AIPredictionH1 == TRADE_BE)
-           {
-             FlagBuy = False;
-             FlagSell= True;
-           }
-          else
-            {
-               FlagBuy = False;
-               FlagSell = False;
-            } 
+         FlagBuy   = GetTradeFlagCondition(AIPredictionM1, AIPredictionM15, AIPredictionH1, //predicted direction from DSS
+                           AIPriceChangePredictionM1,AIPriceChangePredictionM15,AIPriceChangePredictionH1, //predicted change from DSS
+                           entryTriggerM1, entryTriggerM15, entryTriggerM60,//absolute value to enter trade
+                           RobotBehavior,      //desired robot behaviour "scalper", "daily", "longterm"
+                           "buy"); //which direction to check "buy" "sell"
              
-         
+         FlagSell = GetTradeFlagCondition(AIPredictionM1, AIPredictionM15, AIPredictionH1, //predicted direction from DSS
+                           AIPriceChangePredictionM1,AIPriceChangePredictionM15,AIPriceChangePredictionH1, //predicted change from DSS
+                           entryTriggerM1, entryTriggerM15, entryTriggerM60,//absolute value to enter trade
+                           RobotBehavior,      //desired robot behaviour "scalper", "daily", "longterm"
+                           "sell"); //which direction to check "buy" "sell"
+                           
+         TimeMaxHold = GetTimeMaxHold(TimeMaxHoldM1, TimeMaxHoldM15, TimeMaxHoldM60,    //time to hold order from the parameters
+                                      RobotBehavior);
+                   
          TradeAllowed = ReadCommandFromCSV(MagicNumber);              //read command from R to make sure trading is allowed
 
        
      }
+     
+
 //----------Variables to be Refreshed-----------
 
    OrderNumber=0; // OrderNumber used in Entry Rules
@@ -324,14 +329,18 @@ int start()
 
    if(UseFixedStopLoss==False || usePredictedSL == True) 
      {
-      Stop=stopLossFactor*MathAbs(AIPriceChangePredictionM15);
+      Stop=GetTradePrediction(stopLossFactorM1, stopLossFactorM15,stopLossFactorM60,    //stoploss or take profit factor
+                              AIPriceChangePredictionM1, AIPriceChangePredictionM15, AIPriceChangePredictionH1,
+                              RobotBehavior);
         }  else {
       Stop=VolBasedStopLoss(IsVolatilityStopOn,FixedStopLoss,myATR,VolBasedSLMultiplier,P);
      }
 
    if(UseFixedTakeProfit==False || usePredictedTP == True) 
      {
-      Take=takeProfitFactor*MathAbs(AIPriceChangePredictionM15);
+      Take=GetTradePrediction(takeProfFactorM1, takeProfFactorM15,takeProfFactorM60,    //stoploss or take profit factor
+                              AIPriceChangePredictionM1, AIPriceChangePredictionM15, AIPriceChangePredictionH1,
+                              RobotBehavior);
         }  else {
       Take=VolBasedTakeProfit(IsVolatilityTakeProfitOn,FixedTakeProfit,myATR,VolBasedTPMultiplier,P);
      }
@@ -471,6 +480,8 @@ Content:
 32) TriggerAndReviewHiddenVolTrailing
 33) HandleTradingEnvironment
 34) GetErrorDescription
+35) GetTradeFlagCondition
+36) GetTradePrediction
 
 */
 
@@ -2317,3 +2328,131 @@ string GetErrorDescription(int error)
 //+------------------------------------------------------------------+
 //| End of ERROR DESCRIPTION                                         
 //+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//| GetTradeFlagCondition                                              
+//+------------------------------------------------------------------+
+bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, //predicted direction from DSS
+                           double ExpectedMoveM1,double ExpectedMoveM15,double ExpectedMoveM60, //predicted change from DSS
+                           int EntryTradeTriggerM1, int EntryTradeTriggerM15, int EntryTradeTriggerM60,//absolute value to enter trade
+                           string RobotType,      //desired robot behaviour "scalper", "daily", "longterm"
+                           string DirectionCheck) //which direction to check "buy" "sell"
+  {
+// Type: Customizeable
+// Do not edit unless you know what you're doing 
+
+// This function checks trade flag based on hard coded logic and return either false or true
+// let the trader decide which strategy to use (short/medium/long) and automatically changes trading behaviour 
+
+   bool result=False;
+   
+   if(RobotType == "scalper")
+     {
+                        //Specifying Buy Conditions
+                        if(DirectionCheck == "buy")
+                          {
+                            if(ExpectedMoveM1 > EntryTradeTriggerM1 && DirectionM15 == 0 && DirectionM60 == 0) result = True;
+                                                        
+                          } else if(DirectionCheck == "sell")//Specifying Buy Conditions
+                                   {
+                                     if(ExpectedMoveM1 < -1*EntryTradeTriggerM1 && DirectionM15 == 1 && DirectionM60 == 1) result = True;
+                                   }
+      
+     } 
+    else if(RobotType == "daily")
+              {
+      
+                        //Specifying Buy Conditions
+                           if(DirectionCheck == "buy")
+                             {
+                               if(ExpectedMoveM15 > EntryTradeTriggerM15 && DirectionM1 == 0 && DirectionM60 == 0) result = True;
+                             } else if(DirectionCheck == "sell")//Specifying Buy Conditions
+                                      {
+                                       if(ExpectedMoveM15 < -1*EntryTradeTriggerM15 && DirectionM1 == 1 && DirectionM60 == 1) result = True;
+                                      }
+               
+              }
+    else if(RobotType == "longterm")
+                       {
+                        //Specifying Buy Conditions
+                           if(DirectionCheck == "buy")
+                             {
+                               if(ExpectedMoveM60 > EntryTradeTriggerM60 && DirectionM1 == 0 && DirectionM15 == 0) result = True;
+                             } else if(DirectionCheck == "sell")//Specifying Buy Conditions
+                                      {
+                                       if(ExpectedMoveM60 < -1*EntryTradeTriggerM60 && DirectionM1 == 1 && DirectionM15 == 1) result = True;
+                                      }                           
+      
+                        
+                       }
+   
+ 
+
+   return(result);
+
+/* Definitions: Position vs Orders
+   
+   Position describes an opened trade
+   Order is a pending trade
+   
+ 
+
+*/
+  }
+//+------------------------------------------------------------------+
+//| End of GetTradeFlagCondition                                                
+//+------------------------------------------------------------------+    
+//+------------------------------------------------------------------+
+//| GetTradePrediction                                              
+//+------------------------------------------------------------------+
+double GetTradePrediction(double stopFactorm1, double stopFactorm15,double stopFactorm60,    //stoploss or take profit factor
+                          double AIPriceChangem1, double AIPriceChangem15, double AIPriceChangem60,//predicted value of market from the DSS
+                          string RobotType)      //desired robot behaviour "scalper", "daily", "longterm"
+  {
+// Type: Customizeable
+// Do not edit unless you know what you're doing 
+
+// This function checks robot type and return the predicted take profit or stop loss level
+// let the trader decide which strategy to use (short/medium/long) and automatically changes trading behaviour 
+
+   double result=0;
+   
+   if(RobotType == "scalper") result = stopFactorm1*MathAbs(AIPriceChangem1);                 
+   if(RobotType == "daily")   result = stopFactorm15*MathAbs(AIPriceChangem15);  
+   if(RobotType == "longterm")result = stopFactorm60*MathAbs(AIPriceChangem60);  
+
+   return(result);
+
+/* Definitions: 
+ 
+*/
+  }
+//+------------------------------------------------------------------+
+//| End of GetTradePrediction                                                
+//+------------------------------------------------------------------+    
+//+------------------------------------------------------------------+
+//| GetTimeMaxHold                                              
+//+------------------------------------------------------------------+
+int GetTimeMaxHold(int timeHoldm1, int timeHoldm15, int timeHoldm60,    //time to hold order from the parameters
+                   string RobotType)      //desired robot behaviour "scalper", "daily", "longterm"
+  {
+// Type: Customizeable
+// Do not edit unless you know what you're doing 
+
+// This function checks robot type and return desired time to hold the order
+// let the trader decide which strategy to use (short/medium/long) and automatically changes trading behaviour 
+
+   int result=100;
+   
+   if(RobotType == "scalper") result = timeHoldm1;                 
+   if(RobotType == "daily")   result = timeHoldm15;  
+   if(RobotType == "longterm")result = timeHoldm60;  
+
+   return(result);
+
+/* Definitions: 
+ 
+*/
+  }
+//+------------------------------------------------------------------+
+//| End of GetTimeMaxHold                                                
+//+------------------------------------------------------------------+   

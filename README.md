@@ -13,3 +13,4 @@ Experimenting with Robot scalper
 
 ## Main ideas FALCON_F1
 - Possibility to choose type of strategy (short/medium/long term)
+- Add monitoring dashboard to the screen (showing main triggers)
