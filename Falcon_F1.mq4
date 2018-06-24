@@ -23,6 +23,8 @@
 Falcon F1: 
 - Adding specific functions to manage Decision Support System
 - Adding trade direction and asset price change prediction from Decision Support System
+- Modular function that generate trades for short medium or long term trades
+- Entry decisions are only using Regression Deep Learning Models
 # Trading directions:
 # 1. Long  BU
 # 2. Short BE
@@ -61,7 +63,7 @@ extern int     TimeMaxHoldM15         = 1125; //max order close time in minutes
 extern int     TimeMaxHoldM60         = 6000; //max order close time in minutes
 extern int     entryTriggerM1         = 20;   //trade will start when predicted value will exceed this threshold
 extern int     entryTriggerM15        = 50;   //trade will start when predicted value will exceed this threshold
-extern int     entryTriggerM60        = 150;  //trade will start when predicted value will exceed this threshold
+extern int     entryTriggerM60        = 100;  //trade will start when predicted value will exceed this threshold
 extern double  stopLossFactorM1       = 2;    //SL factor from 0.75 up to 2 multiplied by predicted TP
 extern double  stopLossFactorM15      = 0.75; //SL factor from 0.75 up to 2 multiplied by predicted TP
 extern double  stopLossFactorM60      = 0.5; //SL factor from 0.75 up to 2 multiplied by predicted TP
@@ -2359,24 +2361,24 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                         //Specifying Buy Conditions
                         if(DirectionCheck == "buy")
                           {
-                            if(ExpectedMoveM1 > EntryTradeTriggerM1 && DirectionM15 == 1 && DirectionM60 == 1) result = True;
+                            if(ExpectedMoveM1 > EntryTradeTriggerM1 && ExpectedMoveM15 > EntryTradeTriggerM1 && ExpectedMoveM60 > EntryTradeTriggerM1) result = True;
                                                         
                           } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                    {
-                                     if(ExpectedMoveM1 < -1*EntryTradeTriggerM1 && DirectionM15 == 2 && DirectionM60 == 2) result = True;
+                                     if(ExpectedMoveM1 < -1*EntryTradeTriggerM1 && ExpectedMoveM15 < -1* EntryTradeTriggerM1 && ExpectedMoveM60 < -1* EntryTradeTriggerM1) result = True;
                                    }
       
      } 
-    else if(RobotType == "daily")
+    else if(RobotType == "daily" || RobotType == "longterm")
               {
       
                         //Specifying Buy Conditions
                            if(DirectionCheck == "buy")
                              {
-                               if(ExpectedMoveM15 > EntryTradeTriggerM15 && DirectionM1 == 1 && DirectionM60 == 1) result = True;
+                               if(ExpectedMoveM1 > 0 && ExpectedMoveM15 > EntryTradeTriggerM15 && ExpectedMoveM60 > EntryTradeTriggerM15) result = True;
                              } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                       {
-                                       if(ExpectedMoveM15 < -1*EntryTradeTriggerM15 && DirectionM1 == 2 && DirectionM60 == 2) result = True;
+                                       if(ExpectedMoveM1 < 0 && ExpectedMoveM15 < -1*EntryTradeTriggerM15 && ExpectedMoveM60 < -1* EntryTradeTriggerM15) result = True;
                                       }
                
               }
@@ -2385,10 +2387,10 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                         //Specifying Buy Conditions
                            if(DirectionCheck == "buy")
                              {
-                               if(ExpectedMoveM60 > EntryTradeTriggerM60 && DirectionM1 == 1 && DirectionM15 == 1) result = True;
+                               if(ExpectedMoveM15 > EntryTradeTriggerM15 && ExpectedMoveM60 > EntryTradeTriggerM60) result = True;
                              } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                       {
-                                       if(ExpectedMoveM60 < -1*EntryTradeTriggerM60 && DirectionM1 == 2 && DirectionM15 == 2) result = True;
+                                       if(ExpectedMoveM15 < -1*EntryTradeTriggerM15 && ExpectedMoveM60 < -1* EntryTradeTriggerM60) result = True;
                                       }                           
       
                         
@@ -2398,10 +2400,11 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
 
    return(result);
 
-/* Definitions: Position vs Orders
+/* Motivation: 
    
-   Position describes an opened trade
-   Order is a pending trade
+   Scalper:  Only important that Expected move predicted on ALL timeframes is more than the trigger for M1 period
+   Daily:    Check that short term predicted > 0, check against daily trigger for M15, check that long term prediction as at least greater than those for M15
+   Longterm: Check only Medium and Long term trigger matches, completely ignore short term
    
  
 
