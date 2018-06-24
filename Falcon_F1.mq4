@@ -2350,11 +2350,11 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                         //Specifying Buy Conditions
                         if(DirectionCheck == "buy")
                           {
-                            if(ExpectedMoveM1 > EntryTradeTriggerM1 && DirectionM15 == 0 && DirectionM60 == 0) result = True;
+                            if(ExpectedMoveM1 > EntryTradeTriggerM1 && DirectionM15 == 1 && DirectionM60 == 1) result = True;
                                                         
                           } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                    {
-                                     if(ExpectedMoveM1 < -1*EntryTradeTriggerM1 && DirectionM15 == 1 && DirectionM60 == 1) result = True;
+                                     if(ExpectedMoveM1 < -1*EntryTradeTriggerM1 && DirectionM15 == 2 && DirectionM60 == 2) result = True;
                                    }
       
      } 
@@ -2364,10 +2364,10 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                         //Specifying Buy Conditions
                            if(DirectionCheck == "buy")
                              {
-                               if(ExpectedMoveM15 > EntryTradeTriggerM15 && DirectionM1 == 0 && DirectionM60 == 0) result = True;
+                               if(ExpectedMoveM15 > EntryTradeTriggerM15 && DirectionM1 == 1 && DirectionM60 == 1) result = True;
                              } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                       {
-                                       if(ExpectedMoveM15 < -1*EntryTradeTriggerM15 && DirectionM1 == 1 && DirectionM60 == 1) result = True;
+                                       if(ExpectedMoveM15 < -1*EntryTradeTriggerM15 && DirectionM1 == 2 && DirectionM60 == 2) result = True;
                                       }
                
               }
@@ -2376,10 +2376,10 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                         //Specifying Buy Conditions
                            if(DirectionCheck == "buy")
                              {
-                               if(ExpectedMoveM60 > EntryTradeTriggerM60 && DirectionM1 == 0 && DirectionM15 == 0) result = True;
+                               if(ExpectedMoveM60 > EntryTradeTriggerM60 && DirectionM1 == 1 && DirectionM15 == 1) result = True;
                              } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                       {
-                                       if(ExpectedMoveM60 < -1*EntryTradeTriggerM60 && DirectionM1 == 1 && DirectionM15 == 1) result = True;
+                                       if(ExpectedMoveM60 < -1*EntryTradeTriggerM60 && DirectionM1 == 2 && DirectionM15 == 2) result = True;
                                       }                           
       
                         
