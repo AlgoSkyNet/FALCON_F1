@@ -47,9 +47,10 @@ extern string  Header15="----------EA General Settings-----------";
 extern int     MagicNumber           = 8138201;
 extern int     TerminalType          = 1;         //0 mean slave, 1 mean master
 extern bool    R_Management          = true;      //R_Management true will enable Decision Support Centre (using R)
-extern int     Slippage=3; // In Pips
-extern bool    IsECNbroker = false; // Is your broker an ECN
-extern bool    OnJournaling = true; // Add EA updates in the Journal Tab
+extern int     Slippage              = 3; // In Pips
+extern bool    IsECNbroker           = false; // Is your broker an ECN
+extern bool    OnJournaling          = true; // Add EA updates in the Journal Tab
+extern bool    EnableDashboard       = True; // Turn on Dashboard
 
 extern string  Header1="----------Trading Rules Variables -----------";
 extern string  RobotBehavior          = "scalper"; //"scalper", "daily", "longterm"
@@ -432,6 +433,14 @@ int start()
    */
 
 //----
+    //adding dashboard
+    if(EnableDashboard==True) ShowDashboard("Magic Number", MagicNumber,
+                                            "Direction M1", AIPredictionM1,
+                                            "Change    M1", AIPriceChangePredictionM1,
+                                            "Direction M15", AIPredictionM15,
+                                            "Change    M15", AIPriceChangePredictionM15,
+                                            "Direction H1", AIPredictionH1,
+                                            "Change    H1", AIPriceChangePredictionH1); 
 
    return(0);
   }
@@ -2455,4 +2464,59 @@ int GetTimeMaxHold(int timeHoldm1, int timeHoldm15, int timeHoldm60,    //time t
   }
 //+------------------------------------------------------------------+
 //| End of GetTimeMaxHold                                                
+//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//| Dashboard - Comment Version                                    
+//+------------------------------------------------------------------+
+void ShowDashboard(string Descr0, int magic,
+                   string Descr1, int Param1,
+                   string Descr2, double Param2,
+                   string Descr3, int Param3,
+                   string Descr4, double Param4,
+                   string Descr5, int Param5,
+                   string Descr6, double Param6
+                     ) 
+  {
+// Purpose: This function creates a dashboard showing information on your EA using comments function
+// Type: Customisable 
+// Modify this function to suit your trading robot
+//----
+
+string new_line = "\n"; // "\n" or "\n\n" will move the comment to new line
+string space = ": ";    // generate space
+string underscore = "________________________________";
+
+Comment(
+        new_line 
+      + Descr0 + space + IntegerToString(magic)
+      + new_line
+      + underscore  
+      + new_line 
+      + new_line
+      + Descr1 + space + IntegerToString(Param1)
+      + new_line
+      + Descr2 + space + DoubleToString(Param2, 1)
+      + new_line        
+      + underscore  
+      + new_line 
+      + new_line
+      + Descr3 + space + IntegerToString(Param3)
+      + new_line
+      + Descr4 + space + DoubleToString(Param4, 1)
+      + new_line        
+      + underscore  
+      + new_line 
+      + new_line
+      + Descr5 + space + IntegerToString(Param5)
+      + new_line
+      + Descr6 + space + DoubleToString(Param6, 1)
+      + new_line        
+      + underscore  
+      + "");
+      
+      
+  }
+
+//+------------------------------------------------------------------+
+//| End of Dashboard - Comment Version                                     
 //+------------------------------------------------------------------+   
