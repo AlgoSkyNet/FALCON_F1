@@ -2369,7 +2369,7 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                                    }
       
      } 
-    else if(RobotType == "daily" || RobotType == "longterm")
+    else if(RobotType == "daily")
               {
       
                         //Specifying Buy Conditions
