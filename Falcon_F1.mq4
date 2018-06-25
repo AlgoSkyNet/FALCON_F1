@@ -2365,7 +2365,7 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                                                         
                           } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                    {
-                                     if(ExpectedMoveM1 < -1*EntryTradeTriggerM1 && ExpectedMoveM15 < -1* EntryTradeTriggerM1 && ExpectedMoveM60 < -1* EntryTradeTriggerM1) result = True;
+                                     if(ExpectedMoveM1 < (-1*EntryTradeTriggerM1) && ExpectedMoveM15 < (-1* EntryTradeTriggerM1) && ExpectedMoveM60 < (-1* EntryTradeTriggerM1)) result = True;
                                    }
       
      } 
@@ -2378,7 +2378,7 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                                if(ExpectedMoveM1 > 0 && ExpectedMoveM15 > EntryTradeTriggerM15 && ExpectedMoveM60 > EntryTradeTriggerM15) result = True;
                              } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                       {
-                                       if(ExpectedMoveM1 < 0 && ExpectedMoveM15 < -1*EntryTradeTriggerM15 && ExpectedMoveM60 < -1* EntryTradeTriggerM15) result = True;
+                                       if(ExpectedMoveM1 < 0 && ExpectedMoveM15 < (-1*EntryTradeTriggerM15) && ExpectedMoveM60 < (-1* EntryTradeTriggerM15)) result = True;
                                       }
                
               }
@@ -2390,7 +2390,7 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                                if(ExpectedMoveM15 > EntryTradeTriggerM15 && ExpectedMoveM60 > EntryTradeTriggerM60) result = True;
                              } else if(DirectionCheck == "sell")//Specifying Buy Conditions
                                       {
-                                       if(ExpectedMoveM15 < -1*EntryTradeTriggerM15 && ExpectedMoveM60 < -1* EntryTradeTriggerM60) result = True;
+                                       if(ExpectedMoveM15 < (-1*EntryTradeTriggerM15) && ExpectedMoveM60 < (-1* EntryTradeTriggerM60)) result = True;
                                       }                           
       
                         
