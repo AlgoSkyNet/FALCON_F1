@@ -2356,7 +2356,9 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
 
    bool result=False;
    
-   if(RobotType == "scalper")
+   if(RobotType == "scalper")        //logic tested by manually setting up the predictors in the files and disabling predictors tasks in Windows Task Scheduler: 
+                                     //buy : USDCHF M1 ->   25; USDCHF M15 ->  25; USDCHF M60 ->  25
+                                     //sell: USDCHF M1 ->  -25; USDCHF M15 -> -25; USDCHF M60 -> -25
      {
                         //Specifying Buy Conditions
                         if(DirectionCheck == "buy")
@@ -2369,7 +2371,9 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                                    }
       
      } 
-    else if(RobotType == "daily")
+    else if(RobotType == "daily")    //logic tested by manually setting up the predictors in the files and disabling predictors tasks in Windows Task Scheduler: 
+                                     //buy : USDCHF M1 ->   5; USDCHF M15 ->  55; USDCHF M60 ->  55
+                                     //sell: USDCHF M1 ->  -5; USDCHF M15 -> -55; USDCHF M60 -> -55
               {
       
                         //Specifying Buy Conditions
@@ -2382,7 +2386,9 @@ bool GetTradeFlagCondition(int DirectionM1,int DirectionM15, int DirectionM60, /
                                       }
                
               }
-    else if(RobotType == "longterm")
+    else if(RobotType == "longterm") //logic tested by manually setting up the predictors in the files and disabling predictors tasks in Windows Task Scheduler: 
+                                     //buy : USDCHF M15 ->  55; USDCHF M60 ->  180
+                                     //sell: USDCHF M15 -> -55; USDCHF M60 -> -180
                        {
                         //Specifying Buy Conditions
                            if(DirectionCheck == "buy")
