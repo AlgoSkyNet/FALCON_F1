@@ -55,7 +55,7 @@ extern bool    OnJournaling          = true; // Add EA updates in the Journal Ta
 extern bool    EnableDashboard       = True; // Turn on Dashboard
 
 extern string  Header1="----------Trading Rules Variables -----------";
-extern string  RobotBehavior          = "scalper"; //"scalper", "daily", "longterm"
+extern string  RobotBehavior          = "longterm"; //"scalper", "daily", "longterm"
 extern bool    usePredictedSL         = True;
 extern bool    usePredictedTP         = True;
 extern int     TimeMaxHoldM1          = 75; //max order close time in minutes
